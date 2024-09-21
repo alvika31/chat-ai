@@ -4,13 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Conversation;
 use App\Models\SessionCustom;
+use App\Services\HuggingFaceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
 use Inertia\Inertia;
+use OpenAI\Laravel\Facades\OpenAI;
 
 class ChatController extends Controller
 {
+    protected $huggingFaceService;
+
+    public function __construct(HuggingFaceService $huggingFaceService)
+    {
+        $this->huggingFaceService = $huggingFaceService;
+    }
     /**
      * Display a listing of the resource.
      */
@@ -60,6 +68,17 @@ class ChatController extends Controller
         //     'role' => 'ai',
         //     'content' => $aiResponse
         // ]);
+
+        // $aiResponse = $this->huggingFaceService->generateResponse($message);
+
+        $result = OpenAI::chat()->create([
+            'model' => 'gpt-3.5-turbo',
+            'messages' => [
+                ['role' => 'user', 'content' =>  $request->input('message')],
+            ],
+        ]);
+        dd($result->choices[0]->message->content);
+        return $conversation->load('messages');
     }
 
     /**
